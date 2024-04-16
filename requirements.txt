@@ -1,1 +1,4 @@
 requests==2.31.0
+beautifulsoup4==4.12.3
+stanza==1.8.1
+pytest==8.1.1
