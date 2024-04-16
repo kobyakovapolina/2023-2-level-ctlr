@@ -216,6 +216,7 @@ class Crawler:
         Returns:
             str: Url from HTML
         """
+
         url = ''
         for div in article_bs.find_all("div", class_="title", limit=10):
             for link in div.select("a"):
