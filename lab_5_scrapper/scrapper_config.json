@@ -3,7 +3,13 @@
     "https://elementy.ru/novosti_nauki?page=2",
     "https://elementy.ru/novosti_nauki?page=3",
     "https://elementy.ru/novosti_nauki?page=4",
-    "https://elementy.ru/novosti_nauki?page=5"],
+    "https://elementy.ru/novosti_nauki?page=5",
+    "https://elementy.ru/novosti_nauki?page=6",
+    "https://elementy.ru/novosti_nauki?page=7",
+    "https://elementy.ru/novosti_nauki?page=8",
+    "https://elementy.ru/novosti_nauki?page=9",
+    "https://elementy.ru/novosti_nauki?page=10"
+    ],
     "headers": {
         "Cookie": "stg_traffic_source_priority=2; stg_externalReferrer=https://yandex.ru/; stg_last_interaction=Mon%2C%2008%20Apr%202024%2011:15:42%20GMT; stg_returning_visitor=Mon%2C%2008%20Apr%202024%2011:15:42%20GMT",
         "Accept-Language": "ru,en;q=0.9,ko;q=0.8",
@@ -12,7 +18,7 @@
     },
     "total_articles_to_find_and_parse": 100,
     "encoding": "utf-8",
-    "timeout": 5,
+    "timeout": 10,
     "should_verify_certificate": true,
     "headless_mode": true
 }
