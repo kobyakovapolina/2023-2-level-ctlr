@@ -419,6 +419,7 @@ def prepare_environment(base_path: Union[pathlib.Path, str]) -> None:
     for file in base_path.iterdir():
         file.unlink(missing_ok=True)
 
+
 def main() -> None:
     """
     Entrypoint for scrapper module.
