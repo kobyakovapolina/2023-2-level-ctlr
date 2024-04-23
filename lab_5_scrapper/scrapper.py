@@ -95,7 +95,7 @@ class Config:
             raise IncorrectSeedURLError
 
         for seed_url in config['seed_urls']:
-            if not re.match("https?://(www.)?elementy.ru/novosti_nauki", seed_url):
+            if not re.match("https?://(www.)?", seed_url):
                 raise IncorrectSeedURLError
         #if not (isinstance(config['seed_urls'], list)
         #        and all(re.match(r'https?://(www.)?', seed_url) for seed_url in config['seed_urls'])):
@@ -331,13 +331,13 @@ class HTMLParser:
         Args:
             article_soup (bs4.BeautifulSoup): BeautifulSoup instance
         """
-        self.article.title = str(article_soup.find(class_='title').string)
+        self.article.title = article_soup.find('h1').text
 
-        author = ' '.join(article_soup.find(class_='sublink').text.split()[2:4])
+        author = [' '.join(article_soup.find(class_='sublink').text.split()[2:4])]
         if author:
             self.article.author = author
         else:
-            self.article.author = "NOT FOUND"
+            self.article.author = ["NOT FOUND"]
 
         date = str(article_soup.find(class_='date').string)
         if date:
@@ -393,7 +393,7 @@ def main() -> None:
     prepare_environment(base_path)
     crawler.find_articles()
 
-    for i, full_url in enumerate(crawler.urls):
+    for i, full_url in enumerate(crawler.urls, 1):
         parser = HTMLParser(full_url=full_url, article_id=i, config=configuration)
         article = parser.parse()
         to_raw(article)
