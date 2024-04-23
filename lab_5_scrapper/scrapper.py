@@ -247,33 +247,33 @@ class Crawler:
         """
         Find articles.
         """
-        urls = []
-        while len(urls) < self.config.get_num_articles():
-            for url in self.get_search_urls():
-                response = make_request(url, self.config)
-                if not response.ok:
-                    continue
-                article_bs = BeautifulSoup(response.text, 'html.parser')
-                urls.append(self._extract_url(article_bs))
-        self.urls.extend(urls)
+        #urls = []
+        #while len(urls) < self.config.get_num_articles():
+        #    for url in self.get_search_urls():
+        #        response = make_request(url, self.config)
+        #        if not response.ok:
+        #            continue
+        #        article_bs = BeautifulSoup(response.text, 'html.parser')
+        #        urls.append(self._extract_url(article_bs))
+        #self.urls.extend(urls)
 
-        #seed_urls = self.get_search_urls()
-        #for seed_url in seed_urls:
-        #    response = make_request(seed_url, self.config)
-#
-        #    if not response.ok:
-        #        continue
-#
-        #    article_bs = BeautifulSoup(response.text,  'html.parser')
-        #    article_url = self._extract_url(article_bs)
-        #    while article_url:
-        #        if len(self.urls) == self.config.get_num_articles():
-        #            break
-        #        self.urls.append(article_url)
-        #        article_url = self._extract_url(article_bs)
-        #    if len(self.urls) == self.config.get_num_articles():
-        #        break
-        #    print(article_url)
+        seed_urls = self.get_search_urls()
+        for seed_url in seed_urls:
+            response = make_request(seed_url, self.config)
+
+            if not response.ok:
+                continue
+
+            article_bs = BeautifulSoup(response.text,  'html.parser')
+            article_url = self._extract_url(article_bs)
+            while article_url:
+                if len(self.urls) == self.config.get_num_articles():
+                    break
+                self.urls.append(article_url)
+                article_url = self._extract_url(article_bs)
+            if len(self.urls) == self.config.get_num_articles():
+                break
+            #print(article_url)
 
     def get_search_urls(self) -> list:
         """
