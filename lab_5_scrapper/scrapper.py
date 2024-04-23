@@ -95,14 +95,14 @@ class Config:
             raise IncorrectSeedURLError
 
         for seed_url in config['seed_urls']:
-            if not re.match('https?://(www.)?', seed_url):
+            if not re.match("https?://(www.)?elementy\.ru/novosti_nauki", seed_url):
                 raise IncorrectSeedURLError
 
         if (not isinstance(config['total_articles_to_find_and_parse'], int) or
                 config['total_articles_to_find_and_parse'] <= 0):
             raise IncorrectNumberOfArticlesError
 
-        if not 1 < config['total_articles_to_find_and_parse'] < 150:
+        if not 0 < config['total_articles_to_find_and_parse'] < 150:
             raise NumberOfArticlesOutOfRangeError
 
         if not isinstance(config['headers'], dict):
@@ -193,7 +193,7 @@ def make_request(url: str, config: Config) -> requests.models.Response:
     Returns:
         requests.models.Response: A response from a request
     """
-    period = random.randrange(10)
+    period = random.randrange(5)
     time.sleep(period)
 
     response = requests.get(url=url, timeout=config.get_timeout(),
@@ -230,13 +230,6 @@ class Crawler:
         Returns:
             str: Url from HTML
         """
-        #url = ''
-        #links = article_bs.find_all('a', class_="nohover")
-        #for link in links:
-        #    url = link.get('href')
-        #url = self.url_pattern + url
-        #return url
-
         url = ''
         links = article_bs.find_all('a', class_="nohover")
         for link in links:
@@ -250,6 +243,18 @@ class Crawler:
         """
         Find articles.
         """
+        #urls = []
+        #while len(urls) < self.config.get_num_articles():
+        #    for url in self.get_search_urls():
+        #        response = make_request(url, self.config)
+#
+        #        if not response.ok:
+        #            continue
+#
+        #        soup = BeautifulSoup(response.text, 'html.parser')
+        #        urls.append(self._extract_url(soup))
+        #self.urls.extend(urls)
+
         seed_urls = self.get_search_urls()
         for seed_url in seed_urls:
             response = make_request(seed_url, self.config)
@@ -257,7 +262,7 @@ class Crawler:
             if not response.ok:
                 continue
 
-            article_bs = BeautifulSoup(response.text, "html.parser")
+            article_bs = BeautifulSoup(response.text,  'html.parser')
             article_url = self._extract_url(article_bs)
             while article_url:
                 if len(self.urls) == self.config.get_num_articles():
@@ -267,6 +272,7 @@ class Crawler:
 
             if len(self.urls) == self.config.get_num_articles():
                 break
+            print(self.urls)
 
     def get_search_urls(self) -> list:
         """
@@ -307,44 +313,19 @@ class HTMLParser:
         Args:
             article_soup (bs4.BeautifulSoup): BeautifulSoup instance
         """
-
-        #article = ''
-        #article_texts = article_soup.find(class_="memo")
-        #texts = article_texts.find_all('p')
-        #for text in texts:
-        #    article += text.text + '\n'
-        #self.article.text = article
-
+        #text_blocks = article_soup.find_all('p')
+        #raw_text = [text_block.string for text_block in text_blocks
+        #            if text_block.string]
+        #self.article.text = '\n'.join(raw_text)
         #print(self.article.text)
 
-        for clas in article_soup.find_all(class_='small'):
-            clas.decompose()
-
-        text = article_soup.find(class_="memo")
-        full_text = ''
-        all_p_tags = text.find_all("p", recursive=False)[:-1]
-
-        for p in all_p_tags:
-            full_text += p.text + '\n'
-        self.article.text = full_text
-
-        #raw_text = ''
+        raw_text = ''
         #article_texts = article_soup.find(class_="memo")
-        #text_blocks = article_texts.find_all('p')
-        #for text_block in text_blocks:
-        #    if text_block.string:
-        #        raw_text += f'\n{text_block.string}'
-#
-        #self.article.text = raw_text
-        #print(raw_text)
-
-        #all_div = article_soup.find(class_="memo")
-        #full_text = ''
-        #all_p_tags = all_div.find_all("p", recursive=False)[:-1]
-#
-        #for p in all_p_tags:
-        #    full_text += p.text + '\n'
-        #self.article.text = full_text
+        text_blocks = article_soup.find_all('p')
+        for text_block in text_blocks:
+            if text_block.string:
+                raw_text += f'\n{text_block.string}'
+        self.article.text = raw_text
         #print(self.article.text)
 
     def _fill_article_with_meta_information(self, article_soup: BeautifulSoup) -> None:
@@ -355,30 +336,18 @@ class HTMLParser:
             article_soup (bs4.BeautifulSoup): BeautifulSoup instance
         """
         self.article.title = str(article_soup.find(class_='title').string)
-        print(self.article.title)
+        #print(self.article.title)
 
-        author = article_soup.find_all('p')[-1]
-        author = author.get_text()
+        author = ' '.join(article_soup.find(class_='sublink').text.split()[2:4])
         if author:
-            self.article.author = [author]
+            self.article.author = author
         else:
-            self.article.author = ["NOT FOUND"]
-        print(self.article.author)
-
-        #author = str(article_soup.find('i', class_="small"))
-        #if author:
-        #    self.article.author = [author]
-        #else:
-        #    self.article.author = ["NOT FOUND"]
-#
+            self.article.author = "NOT FOUND"
         #print(self.article.author)
 
-        #author = article_soup.find_all('i', class_='small')[-1]
-        #print(author)
-
-        date = article_soup.find('span', class_='date')
+        date = str(article_soup.find(class_='date').string)
         self.article.date = date
-        print(self.article.date)
+        #print(self.article.date)
 
     def unify_date_format(self, date_str: str) -> datetime.datetime:
         """
@@ -390,6 +359,7 @@ class HTMLParser:
         Returns:
             datetime.datetime: Datetime object
         """
+
 
     def parse(self) -> Union[Article, bool, list]:
         """
