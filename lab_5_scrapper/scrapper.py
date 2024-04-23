@@ -5,8 +5,8 @@ Crawler implementation.
 import datetime
 import json
 import pathlib
-from random import randrange
 import re
+from random import randrange
 from time import sleep
 from typing import Pattern, Union
 
