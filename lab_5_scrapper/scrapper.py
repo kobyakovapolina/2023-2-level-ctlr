@@ -95,7 +95,7 @@ class Config:
             raise IncorrectSeedURLError
 
         for seed_url in config['seed_urls']:
-            if not re.match("https?://(www.)?elementy\.ru/novosti_nauki", seed_url):
+            if not re.match("https?://(www.)?elementy.ru/novosti_nauki", seed_url):
                 raise IncorrectSeedURLError
         #if not (isinstance(config['seed_urls'], list)
         #        and all(re.match(r'https?://(www.)?', seed_url) for seed_url in config['seed_urls'])):
