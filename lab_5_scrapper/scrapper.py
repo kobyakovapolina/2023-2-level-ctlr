@@ -5,11 +5,9 @@ Crawler implementation.
 import datetime
 import json
 import pathlib
+import random
 import re
 import time
-import random
-#from random import randrange
-#from time import sleep
 from typing import Pattern, Union
 
 import requests
@@ -195,7 +193,6 @@ def make_request(url: str, config: Config) -> requests.models.Response:
     Returns:
         requests.models.Response: A response from a request
     """
-    #sleep(randrange(5))
     period = random.randrange(5)
     time.sleep(period)
 
