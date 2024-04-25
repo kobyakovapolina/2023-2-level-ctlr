@@ -6,8 +6,10 @@ import datetime
 import json
 import pathlib
 import re
-from random import randrange
-from time import sleep
+import time
+import random
+#from random import randrange
+#from time import sleep
 from typing import Pattern, Union
 
 import requests
@@ -94,12 +96,9 @@ class Config:
         if not isinstance(config['seed_urls'], list):
             raise IncorrectSeedURLError
 
-        for seed_url in config['seed_urls']:
-            if not re.match("https?://(www.)?", seed_url):
-                raise IncorrectSeedURLError
-        #if not (isinstance(config['seed_urls'], list)
-        #        and all(re.match(r'https?://(www.)?', seed_url) for seed_url in config['seed_urls'])):
-        #    raise IncorrectSeedURLError
+        if not (isinstance(config['seed_urls'], list)
+                and all(re.match(r'https?://(www.)?', seed_url) for seed_url in config['seed_urls'])):
+            raise IncorrectSeedURLError
 
         if (not isinstance(config['total_articles_to_find_and_parse'], int) or
                 config['total_articles_to_find_and_parse'] <= 0):
@@ -196,9 +195,9 @@ def make_request(url: str, config: Config) -> requests.models.Response:
     Returns:
         requests.models.Response: A response from a request
     """
-    sleep(randrange(5))
-    #period = random.randrange(5)
-    #time.sleep(period)
+    #sleep(randrange(5))
+    period = random.randrange(5)
+    time.sleep(period)
 
     response = requests.get(url=url, timeout=config.get_timeout(),
                             headers=config.get_headers(),
@@ -234,29 +233,23 @@ class Crawler:
         Returns:
             str: Url from HTML
         """
-        url = ''
         links = article_bs.find_all('a', class_="nohover")
         for link in links:
-            url = link.get('href')
+            url = self.url_pattern + link.get('href')[len('/novosti_nauki')::]
             if url not in self.urls:
                 break
-        url = self.url_pattern + url[len("/novosti_nauki")::]
+        else:
+            url = ''
         return url
+
+        #link = article_bs.find('a', class_="nohover").get('href')
+        #url = self.url_pattern + link[len("/novosti_nauki")::]
+        #return url
 
     def find_articles(self) -> None:
         """
         Find articles.
         """
-        #urls = []
-        #while len(urls) < self.config.get_num_articles():
-        #    for url in self.get_search_urls():
-        #        response = make_request(url, self.config)
-        #        if not response.ok:
-        #            continue
-        #        article_bs = BeautifulSoup(response.text, 'html.parser')
-        #        urls.append(self._extract_url(article_bs))
-        #self.urls.extend(urls)
-
         seed_urls = self.get_search_urls()
         for seed_url in seed_urls:
             response = make_request(seed_url, self.config)
@@ -264,7 +257,7 @@ class Crawler:
             if not response.ok:
                 continue
 
-            article_bs = BeautifulSoup(response.text,  'html.parser')
+            article_bs = BeautifulSoup(response.text, "html.parser")
             article_url = self._extract_url(article_bs)
             while article_url:
                 if len(self.urls) == self.config.get_num_articles():
@@ -273,7 +266,6 @@ class Crawler:
                 article_url = self._extract_url(article_bs)
             if len(self.urls) == self.config.get_num_articles():
                 break
-            #print(article_url)
 
     def get_search_urls(self) -> list:
         """
@@ -339,7 +331,7 @@ class HTMLParser:
         else:
             self.article.author = ["NOT FOUND"]
 
-        date = str(article_soup.find(class_='date').string)
+        date = article_soup.find(class_='date').text
         if date:
             self.article.date = self.unify_date_format(date)
 
