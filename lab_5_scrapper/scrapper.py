@@ -102,7 +102,7 @@ class Config:
                 config['total_articles_to_find_and_parse'] <= 0):
             raise IncorrectNumberOfArticlesError
 
-        if not 1 < config['total_articles_to_find_and_parse'] <= 150:
+        if not 0 < config['total_articles_to_find_and_parse'] <= 150:
             raise NumberOfArticlesOutOfRangeError
 
         if not isinstance(config['headers'], dict):
@@ -230,18 +230,18 @@ class Crawler:
         Returns:
             str: Url from HTML
         """
-        links = article_bs.find_all('a', class_="nohover")
-        for link in links:
-            url = self.url_pattern + link.get('href')[len('/novosti_nauki')::]
-            if url not in self.urls:
-                break
-        else:
-            url = ''
-        return url
-
-        #link = article_bs.find('a', class_="nohover").get('href')
-        #url = self.url_pattern + link[len("/novosti_nauki")::]
+        #links = article_bs.find_all('a', class_="nohover")
+        #for link in links:
+        #    url = self.url_pattern + link.get('href')[len('/novosti_nauki')::]
+        #    if url not in self.urls:
+        #        break
+        #else:
+        #    url = ''
         #return url
+
+        link = article_bs.find('a', class_='nohover').get('href')
+        url = self.url_pattern + link[len('/novosti_nauki')::]
+        return url
 
     def find_articles(self) -> None:
         """
@@ -254,15 +254,19 @@ class Crawler:
             if not response.ok:
                 continue
 
-            article_bs = BeautifulSoup(response.text, "html.parser")
-            article_url = self._extract_url(article_bs)
-            while article_url:
+            article_bs = BeautifulSoup(response.text, 'html.parser')
+
+            for link in article_bs.find(class_='clblock newslist').find_all(class_='img_block32'):
                 if len(self.urls) == self.config.get_num_articles():
                     break
-                self.urls.append(article_url)
-                article_url = self._extract_url(article_bs)
-            if len(self.urls) == self.config.get_num_articles():
-                break
+                if self._extract_url(link) and self._extract_url(link) not in self.urls:
+                    self.urls.append(self._extract_url(link))
+
+            #while article_url:
+            #    if len(self.urls) == self.config.get_num_articles():
+            #        break
+            #    self.urls.append(article_url)
+            #    #article_url = self._extract_url(article_bs)
 
     def get_search_urls(self) -> list:
         """
@@ -306,12 +310,13 @@ class HTMLParser:
         for clas in article_soup.find_all(class_='small'):
             clas.decompose()
 
-        all_div = article_soup.find(class_="memo")
+        all_div = article_soup.find(class_='memo')
         full_text = ''
-        all_p_tags = all_div.find_all("p", recursive=False)[:-1]
+        all_p_tags = all_div.find_all('p', recursive=False)[:-1]
         for p in all_p_tags:
             full_text += p.text + '\n'
-        self.article.text = full_text
+        clean_text = full_text.replace('\xa0', '')
+        self.article.text = clean_text
 
     def _fill_article_with_meta_information(self, article_soup: BeautifulSoup) -> None:
         """
@@ -326,11 +331,25 @@ class HTMLParser:
         if author:
             self.article.author = author
         else:
-            self.article.author = ["NOT FOUND"]
+            self.article.author = ['NOT FOUND']
 
         date = article_soup.find(class_='date').text
         if date:
             self.article.date = self.unify_date_format(date)
+
+        #topics = article_soup.find(class_='sublink').text.split()[5:7]
+        topics_list = []
+        topics = article_soup.find(class_='sublink').find_all('a')[1:3]
+        for topic in topics:
+            topic = topic.get_text()
+            topics_list.append(topic)
+            self.article.topics = topics_list
+
+        #links = article_soup.find_all('a', class_="sublink")
+        #for link in links:
+        #    url = link.get('href')[len('/novosti_nauki/t')::]
+
+        #self.article.topics = topics
 
     def unify_date_format(self, date_str: str) -> datetime.datetime:
         """
@@ -368,6 +387,7 @@ def prepare_environment(base_path: Union[pathlib.Path, str]) -> None:
         base_path (Union[pathlib.Path, str]): Path where articles stores
     """
     base_path.mkdir(parents=True, exist_ok=True)
+
     for file in base_path.iterdir():
         file.unlink(missing_ok=True)
 
