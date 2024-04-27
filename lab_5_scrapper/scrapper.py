@@ -240,7 +240,7 @@ class Crawler:
         #return url
 
         link = article_bs.find('a', class_='nohover').get('href')
-        url = self.url_pattern + link[len('/novosti_nauki')::]
+        url = str(self.url_pattern + link[len('/novosti_nauki')::])
         return url
 
     def find_articles(self) -> None:
@@ -405,8 +405,9 @@ def main() -> None:
     for i, full_url in enumerate(crawler.urls, 1):
         parser = HTMLParser(full_url=full_url, article_id=i, config=configuration)
         article = parser.parse()
-        to_raw(article)
-        to_meta(article)
+        if isinstance(article, Article):
+            to_raw(article)
+            to_meta(article)
 
 
 if __name__ == "__main__":
