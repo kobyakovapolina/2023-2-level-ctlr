@@ -48,7 +48,6 @@ class IncorrectVerifyError(Exception):
     Verify certificate value is not True or False
     """
 
-
 class Config:
     """
     Class for unpacking and validating configurations.
@@ -378,9 +377,8 @@ def main() -> None:
     for i, full_url in enumerate(crawler.urls, 1):
         parser = HTMLParser(full_url=full_url, article_id=i, config=configuration)
         article = parser.parse()
-        if isinstance(article, Article):
-            to_raw(article)
-            to_meta(article)
+        to_raw(article)
+        to_meta(article)
 
 
 if __name__ == "__main__":
