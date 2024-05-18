@@ -5,12 +5,12 @@ Pipeline for CONLL-U formatting.
 import pathlib
 import spacy_udpipe
 
+
 try:
     from networkx import DiGraph
 except ImportError:  # pragma: no cover
     DiGraph = None  # type: ignore
     print('No libraries installed. Failed to import.')
-
 
 from core_utils.article.article import (Article, ArtifactType, get_article_id_from_filepath,
                                         split_by_sentence)
@@ -34,6 +34,7 @@ class EmptyFileError(Exception):
     """
     The file is empty.
     """
+
 
 class CorpusManager:
     """
@@ -129,6 +130,7 @@ class TextProcessingPipeline(PipelineProtocol):
                 article.set_conllu_info(text_analyze)
                 self._analyzer.to_conllu(article)
 
+
 class UDPipeAnalyzer(LibraryWrapper):
     """
     Wrapper for udpipe library.
@@ -190,6 +192,7 @@ class UDPipeAnalyzer(LibraryWrapper):
         with open(article.get_file_path(ArtifactType.UDPIPE_CONLLU), 'w', encoding='utf-8') as annotation_file:
             annotation_file.writelines(article.get_conllu_info())
             annotation_file.write("\n")
+
 
 class StanzaAnalyzer(LibraryWrapper):
     """
