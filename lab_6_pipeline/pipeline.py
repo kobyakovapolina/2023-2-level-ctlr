@@ -76,8 +76,7 @@ class CorpusManager:
         sorted_meta_files = sorted(meta_files, key=lambda file: get_article_id_from_filepath(file))
 
         for index, (raw_file, meta_file) in enumerate(zip(sorted_raw_files, sorted_meta_files)):
-            if (index + 1 != get_article_id_from_filepath(raw_file)
-                    or index + 1 != get_article_id_from_filepath(meta_file)
+            if (index + 1 != get_article_id_from_filepath(raw_file) or index + 1 != get_article_id_from_filepath(meta_file)
                     or raw_file.stat().st_size == 0 or meta_file.stat().st_size == 0):
                 raise InconsistentDatasetError
 
