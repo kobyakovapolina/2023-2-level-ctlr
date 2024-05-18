@@ -18,6 +18,7 @@ except ImportError:  # pragma: no cover
     DiGraph = None  # type: ignore
     print('No libraries installed. Failed to import.')
 
+
 class InconsistentDatasetError(Exception):
     """
     IDs contain slips, number of meta and raw files is not equal, files are empty.
