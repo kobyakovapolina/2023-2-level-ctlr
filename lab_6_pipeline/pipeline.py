@@ -129,7 +129,6 @@ class TextProcessingPipeline(PipelineProtocol):
                 article.set_conllu_info(text_analyze)
                 self._analyzer.to_conllu(article)
 
-
 class UDPipeAnalyzer(LibraryWrapper):
     """
     Wrapper for udpipe library.
