@@ -72,11 +72,11 @@ class CorpusManager:
         if len(meta_files) != len(raw_files):
             raise InconsistentDatasetError
 
-        sorted_raw_files = sorted(raw_files, key=lambda file: get_article_id_from_filepath(file))
-        sorted_meta_files = sorted(meta_files, key=lambda file: get_article_id_from_filepath(file))
+        sorted_raw_files = sorted(raw_files, key=get_article_id_from_filepath)
+        sorted_meta_files = sorted(meta_files, key=get_article_id_from_filepath)
 
-        for index, (raw_file, meta_file) in enumerate(zip(sorted_raw_files, sorted_meta_files)):
-            if (index + 1 != get_article_id_from_filepath(raw_file) or index + 1 != get_article_id_from_filepath(meta_file)
+        for index, (raw_file, meta_file) in enumerate(zip(sorted_raw_files, sorted_meta_files), start=1):
+            if (index != get_article_id_from_filepath(raw_file) or index != get_article_id_from_filepath(meta_file)
                     or raw_file.stat().st_size == 0 or meta_file.stat().st_size == 0):
                 raise InconsistentDatasetError
 
@@ -85,8 +85,8 @@ class CorpusManager:
         Register each dataset entry.
         """
         for file in list(self.path_to_raw_txt_data.glob("*_raw.txt")):
-            ind = get_article_id_from_filepath(file)
-            self._storage[ind] = from_raw(file, Article(None, ind))
+            i = get_article_id_from_filepath(file)
+            self._storage[i] = from_raw(file, Article(None, i))
 
     def get_articles(self) -> dict:
         """
@@ -114,20 +114,23 @@ class TextProcessingPipeline(PipelineProtocol):
             analyzer (LibraryWrapper | None): Analyzer instance
         """
         self._corpus_manager = corpus_manager
-        self._analyzer = analyzer
+        self.analyzer = analyzer
 
     def run(self) -> None:
         """
         Perform basic preprocessing and write processed text to files.
         """
         articles = self._corpus_manager.get_articles().values()
+        texts = [article.text for article in articles]
+        text_analyzed = self.analyzer.analyze(texts)
         for article in articles:
             to_cleaned(article)
-            if self._analyzer:
-                texts = split_by_sentence(article.text)
-                text_analyze = self._analyzer.analyze(texts)
-                article.set_conllu_info(text_analyze)
-                self._analyzer.to_conllu(article)
+            if self.analyzer:
+                #texts = split_by_sentence(article.text)
+                #text_analyze = self.analyzer.analyze(texts)
+                article.set_conllu_info(text_analyzed)
+                self.analyzer.to_conllu(article)
+
 
 class UDPipeAnalyzer(LibraryWrapper):
     """
@@ -149,10 +152,7 @@ class UDPipeAnalyzer(LibraryWrapper):
         Returns:
             AbstractCoNLLUAnalyzer: Analyzer instance
         """
-        model = spacy_udpipe.load_from_path(
-            lang="ru",
-            path=str(UDPIPE_MODEL_PATH)
-        )
+        model = spacy_udpipe.load_from_path(lang="ru", path=str(UDPIPE_MODEL_PATH))
 
         model.add_pipe(
             "conll_formatter",
@@ -341,6 +341,9 @@ def main() -> None:
     pipeline = TextProcessingPipeline(corpus_manager, udpipe_analyzer)
     pipeline.run()
 
+    stanza_analyzer = StanzaAnalyzer()
+    pipeline = TextProcessingPipeline(corpus_manager, stanza_analyzer)
+    pipeline.run()
 
 if __name__ == "__main__":
     main()
