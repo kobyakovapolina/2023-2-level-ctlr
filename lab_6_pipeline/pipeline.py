@@ -12,8 +12,7 @@ except ImportError:  # pragma: no cover
     DiGraph = None  # type: ignore
     print('No libraries installed. Failed to import.')
 
-from core_utils.article.article import (Article, ArtifactType, get_article_id_from_filepath,
-                                        split_by_sentence)
+from core_utils.article.article import (Article, ArtifactType, get_article_id_from_filepath)
 from core_utils.article.io import from_raw, to_cleaned
 from core_utils.constants import ASSETS_PATH, UDPIPE_MODEL_PATH
 from core_utils.pipeline import (AbstractCoNLLUAnalyzer, CoNLLUDocument, LibraryWrapper,
@@ -75,7 +74,7 @@ class CorpusManager:
         sorted_raw_files = sorted(raw_files, key=get_article_id_from_filepath)
         sorted_meta_files = sorted(meta_files, key=get_article_id_from_filepath)
 
-        for index, (raw_file, meta_file) in enumerate(zip(sorted_raw_files, sorted_meta_files), start=1):
+        for index, (raw_file, meta_file) in enumerate(zip(sorted_raw_files, sorted_meta_files), 1):
             if (index != get_article_id_from_filepath(raw_file) or index != get_article_id_from_filepath(meta_file)
                     or raw_file.stat().st_size == 0 or meta_file.stat().st_size == 0):
                 raise InconsistentDatasetError
@@ -114,22 +113,23 @@ class TextProcessingPipeline(PipelineProtocol):
             analyzer (LibraryWrapper | None): Analyzer instance
         """
         self._corpus_manager = corpus_manager
-        self.analyzer = analyzer
+        self._analyzer = analyzer
 
     def run(self) -> None:
         """
         Perform basic preprocessing and write processed text to files.
         """
+        texts_analyzed = []
         articles = self._corpus_manager.get_articles().values()
-        texts = [article.text for article in articles]
-        text_analyzed = self.analyzer.analyze(texts)
-        for article in articles:
+
+        if self._analyzer:
+            texts = [article.text for article in articles]
+            texts_analyzed = self._analyzer.analyze(texts)
+        for i, article in enumerate(articles):
             to_cleaned(article)
-            if self.analyzer:
-                #texts = split_by_sentence(article.text)
-                #text_analyze = self.analyzer.analyze(texts)
-                article.set_conllu_info(text_analyzed)
-                self.analyzer.to_conllu(article)
+            if self._analyzer and texts_analyzed:
+                article.set_conllu_info(texts_analyzed[i])
+                self._analyzer.to_conllu(article)
 
 
 class UDPipeAnalyzer(LibraryWrapper):
